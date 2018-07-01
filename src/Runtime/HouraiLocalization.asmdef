@@ -1,8 +1,0 @@
-{
-    "name": "HouraiLocalization",
-    "references": [
-        "HouraiCore"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": []
-}
