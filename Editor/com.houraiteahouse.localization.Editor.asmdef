@@ -1,0 +1,10 @@
+{
+    "name": "com.houraiteahouse.localization.Editor",
+    "references": [
+        "com.houraiteahouse.localization.Runtime"
+    ],
+    "includePlatforms": [
+      "Editor"
+    ],
+    "excludePlatforms": []
+}
