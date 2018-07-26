@@ -3,5 +3,8 @@
   "name": "com.houraiteahouse.localization",
   "displayName": "Hourai Localization",
   "version": "0.0.1",
-  "description": "Localization library"
+  "description": "Localization library for Unity3D",
+  "dependencies": {
+    "com.houraiteahouse.options": "0.1.0"
+  }
 }

@@ -1,8 +1,11 @@
 {
     "name": "com.houraiteahouse.localization.Runtime",
     "references": [
-        "com.houraiteahouse.core.Runtime"
+        "com.houraiteahouse.core.Runtime",
+        "com.houraiteahouse.options.Runtime"
     ],
+    "optionalUnityReferences": [],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
 }
