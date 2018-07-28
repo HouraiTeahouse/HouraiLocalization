@@ -2,7 +2,8 @@
     "name": "com.houraiteahouse.localization.Runtime",
     "references": [
         "com.houraiteahouse.core.Runtime",
-        "com.houraiteahouse.options.Runtime"
+        "com.houraiteahouse.options.Runtime",
+        "Unity.TextMeshPro"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

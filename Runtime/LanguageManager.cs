@@ -10,6 +10,7 @@ using UnityEngine.Events;
 
 namespace HouraiTeahouse.Localization {
 
+[Serializable]
 public class LanguageChangedEvent : UnityEvent<Language> {}
 
 /// <summary> 
@@ -23,7 +24,6 @@ public sealed class LanguageManager : MonoBehaviour {
   HashSet<string> _languages;
 
   public Option LanguageOption;
-  public LanguageChangedEvent OnChangeLangauge;
 
   public static LanguageManager Instance { get; private set; }
 
@@ -38,6 +38,11 @@ public sealed class LanguageManager : MonoBehaviour {
   [SerializeField]
   [Tooltip("The Resources directory to load the Language files from")]
   string localizationDirectory = "lang";
+
+  [SerializeField] LanguageChangedEvent _onLanguageChanged;
+  public LanguageChangedEvent OnLanguageChanged {
+    get { return  _onLanguageChanged ?? (_onLanguageChanged = new LanguageChangedEvent()); }
+  }
 
   /// <summary> 
   /// The currently used language. 
@@ -55,18 +60,14 @@ public sealed class LanguageManager : MonoBehaviour {
   public IEnumerable<string> Keys => CurrentLanguage.Keys;
 
   void SetLanguage(string langName, IDictionary<string, string> values) {
-    if (CurrentLanguage.Name == langName) return;
-    CurrentLanguage.Update(values);
-    CurrentLanguage.Name = langName;
-    OnChangeLangauge?.Invoke(CurrentLanguage);
     var culture = CultureInfo.GetCultureInfo(langName);
+    CurrentLanguage.Update(values);
+    CurrentLanguage.CultureInfo = culture;
+    OnLanguageChanged?.Invoke(CurrentLanguage);
     Debug.LogFormat($"Set language to {culture.DisplayName}");
   }
 
-  string GetLanguagePath(string identifier) {
-      return Path.Combine(_storageDirectory, identifier + FileExtension);
-  }
-
+  string GetLanguagePath(string identifier) => Path.Combine(_storageDirectory, identifier + FileExtension);
 
     /// <summary>
     /// Awake is called when the script instance is being loaded.
