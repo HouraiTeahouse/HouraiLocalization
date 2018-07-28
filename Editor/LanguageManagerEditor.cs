@@ -26,15 +26,17 @@ internal class LanguageManagerEditor : Editor {
       _availableLanguages = langManager.AvailableLanguages.ToArray();
       _display = _availableLanguages.Select(GetLanguageName).ToArray();
       Language language = langManager.CurrentLanguage;
-      if (language != null)
-          _index = Array.LastIndexOf(_availableLanguages, langManager.CurrentLanguage.Name);
+      if (language != null) {
+        _index = Array.LastIndexOf(_availableLanguages, langManager.CurrentLanguage.CultureInfo.DisplayName);
+      }
     }
 
     GUI.enabled = EditorApplication.isPlayingOrWillChangePlaymode;
     int oldIndex = _index;
     _index = EditorGUILayout.Popup("Current Language", _index, _display);
-    if (_index != oldIndex)
-        langManager.LoadLanguage(_availableLanguages[_index]);
+    if (_index != oldIndex) {
+      langManager.LoadLanguage(_availableLanguages[_index]);
+    }
     GUI.enabled = true;
   }
 

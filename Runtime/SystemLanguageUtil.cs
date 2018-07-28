@@ -8,36 +8,6 @@ namespace HouraiTeahouse.Localization {
 
 public static class SystemLanguageUtil {
 
-  static readonly Dictionary<CultureInfo, SystemLanguage> _inverse;
-
-  static SystemLanguageUtil() {
-    _inverse = new Dictionary<CultureInfo, SystemLanguage>();
-    foreach (var language in Enum.GetValues(typeof(SystemLanguage)).OfType<SystemLanguage>())
-        _inverse[ToCultureInfo(language)] = language;
-  }
-
-  public static SystemLanguage ToLanguage(string identifier) {
-    try {
-      return ToLanguage(CultureInfo.GetCultureInfo(identifier));
-    } catch (CultureNotFoundException) {
-      return SystemLanguage.Unknown;
-    }
-  }
-
-  public static SystemLanguage ToLanguage(int lcid) {
-    try {
-      return ToLanguage(CultureInfo.GetCultureInfo(lcid));
-    } catch (CultureNotFoundException) {
-      return SystemLanguage.Unknown;
-    }
-  }
-
-  public static SystemLanguage ToLanguage(CultureInfo info) {
-    SystemLanguage value;
-    if (_inverse.TryGetValue(info, out value)) return value;
-    return SystemLanguage.Unknown;
-  }
-
   public static string ToIdentifier(this SystemLanguage systemLanguage) {
     switch (systemLanguage) {
       case SystemLanguage.Basque: return "eu";

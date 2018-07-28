@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "description": "Localization library for Unity3D",
   "dependencies": {
-    "com.houraiteahouse.options": "0.1.0"
+    "com.houraiteahouse.options": "0.1.0",
+    "com.unity.textmeshpro": "1.2.4"
   }
 }
