@@ -2,10 +2,17 @@
   "author": "Hourai Teahouse",
   "name": "com.houraiteahouse.localization",
   "displayName": "Hourai Localization",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Localization library for Unity3D",
+  "homepage": "https://github.com/HouraiTeahouse/HouraiLocalization",
+  "bugs": "https://github.com/HouraiTeahouse/HouraiLocalization/issues",
+  "repository": "github:HouraiTeahouse/HouraiLocalization",
   "dependencies": {
-    "com.houraiteahouse.options": "0.1.0",
+    "com.houraiteahouse.core": "1.0.0",
+    "com.houraiteahouse.options": "1.0.0",
     "com.unity.textmeshpro": "1.2.4"
+  }
+  "publishConfig": {
+    "registry": "https://upm.houraiteahouse.net"
   }
 }
