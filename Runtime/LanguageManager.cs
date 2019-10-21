@@ -13,8 +13,8 @@ namespace HouraiTeahouse.Localization {
 [Serializable]
 public class LanguageChangedEvent : UnityEvent<Language> {}
 
-/// <summary> 
-/// Singleton MonoBehaviour that manages all of localization system. 
+/// <summary>
+/// Singleton MonoBehaviour that manages all of localization system.
 /// </summary>
 public sealed class LanguageManager : MonoBehaviour {
 
@@ -44,18 +44,18 @@ public sealed class LanguageManager : MonoBehaviour {
     get { return  _onLanguageChanged ?? (_onLanguageChanged = new LanguageChangedEvent()); }
   }
 
-  /// <summary> 
-  /// The currently used language. 
+  /// <summary>
+  /// The currently used language.
   /// </summary>
   public Language CurrentLanguage { get; private set; }
 
-  /// <summary> 
-  /// All available languages currently supported by the system. 
+  /// <summary>
+  /// All available languages currently supported by the system.
   /// </summary>
   public IEnumerable<string> AvailableLanguages => _languages ?? Enumerable.Empty<string>();
 
-  /// <summary> 
-  /// Gets an enumeration of all of the localizable keys. 
+  /// <summary>
+  /// Gets an enumeration of all of the localizable keys.
   /// </summary>
   public IEnumerable<string> Keys => CurrentLanguage.Keys;
 
@@ -76,9 +76,6 @@ public sealed class LanguageManager : MonoBehaviour {
       Instance = this;
 
       CurrentLanguage = new Language();
-#if HOURAI_EVENTS
-      _eventManager = Mediator.Global;
-#endif
 
       _storageDirectory = Path.Combine(Application.streamingAssetsPath, localizationDirectory);
       var languages = Directory.GetFiles(_storageDirectory);
@@ -109,7 +106,10 @@ public sealed class LanguageManager : MonoBehaviour {
     LanguageOption.DefaultValue = systemLang.LCID;
     LanguageOption.EnumOptions = _languages.Select(lang => {
       var culture = CultureInfo.GetCultureInfo(lang);
-      return new EnumOption { Value = culture.LCID, DisplayName = culture.DisplayName };
+      return new EnumOption {
+        Value = culture.LCID,
+        DisplayName = culture.DisplayName
+      };
     }).OrderBy(opt => opt.DisplayName)
     .ToArray();
 
@@ -128,20 +128,24 @@ public sealed class LanguageManager : MonoBehaviour {
     LanguageOption.Set<int>(culture.LCID);
   }
 
-  /// <summary> 
-  /// Loads a new language given the Microsoft language identifier. 
+  /// <summary>
+  /// Loads a new language given the Microsoft language identifier.
   /// </summary>
   /// <param name="identifier"> the Microsoft identifier for a lanuguage </param>
   /// <returns> the localization language </returns>
-  /// <exception cref="ArgumentNullException"> <paramref name="identifier" /> is null. </exception>
-  /// <exception cref="InvalidOperationException"> the language specified by <paramref name="identifier" /> is not currently
-  /// supported. </exception>
+  /// <exception cref="ArgumentNullException"> <paramref name="identifier" />
+  /// is null. </exception>
+  /// <exception cref="InvalidOperationException"> the language specified by
+  /// <paramref name="identifier" /> is not currently supported. </exception>
   public Language LoadLanguage(string identifier) {
       Argument.NotNull(identifier);
       identifier = identifier.ToLower();
       if (!_languages.Contains(identifier))
-          throw new InvalidOperationException(string.Format("Language with identifier of {0} is not supported.", identifier));
-      var languageValues = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(GetLanguagePath(identifier)));
+          throw new InvalidOperationException(
+              $"Language with identifier of {identifier} is not supported.");
+      var contents = File.ReadAllText(GetLanguagePath(identifier));
+      var languageValues =
+        JsonConvert.DeserializeObject<Dictionary<string, string>>(contents);
       SetLanguage(identifier, languageValues);
       return CurrentLanguage;
   }
