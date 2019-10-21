@@ -11,7 +11,7 @@
     "com.houraiteahouse.core": "1.0.0",
     "com.houraiteahouse.options": "1.0.0",
     "com.unity.textmeshpro": "1.2.4"
-  }
+  },
   "publishConfig": {
     "registry": "https://upm.houraiteahouse.net"
   }
