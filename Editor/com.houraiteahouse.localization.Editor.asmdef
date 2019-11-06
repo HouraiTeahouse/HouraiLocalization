@@ -1,10 +1,20 @@
 {
     "name": "com.houraiteahouse.localization.Editor",
     "references": [
-        "com.houraiteahouse.localization.Runtime"
+        "com.houraiteahouse.localization.Runtime",
+        "Unity.Localization",
+        "Unity.Localization.Editor",
+        "com.houraiteahouse.core.Runtime"
     ],
     "includePlatforms": [
-      "Editor"
+        "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

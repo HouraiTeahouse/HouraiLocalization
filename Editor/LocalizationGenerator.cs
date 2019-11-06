@@ -1,87 +1,106 @@
 using Google.GData.Spreadsheets;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Assertions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using UnityEditor;
+using UnityEditor.Localization;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Localization.Tables;
 
 namespace HouraiTeahouse.Localization {
 
-    /// <summary> A Editor-Only ScriptableObject for pulling localization data from Google Spreadsheets and creating the
-    /// approriate Langauge assets. </summary>
-    public class LocalizationGenerator : ScriptableObject {
+[CreateAssetMenu(menuName="Hourai Teahouse/Localization Generator")]
+public class LocalizationGenerator : ScriptableObject {
 
-        [SerializeField]
-        [Tooltip("The public Google Spreadsheets link to pull data from")]
-        string GoogleLink;
+    const string kSmartKey = "[smart]";
 
-        [SerializeField]
-        [Tooltip("The default language to use")]
-        string _defaultLanguage;
+    [SerializeField]
+    [Tooltip("The public Google Spreadsheets link to pull data from")]
+    string GoogleLink;
 
-        [SerializeField]
-        [Tooltip("Columns in the spreadsheet to ignore")]
-        string[] _ignoreColumns;
+    [SerializeField]
+    [Tooltip("The column the key is stored on")]
+    string _keyColumn;
 
-        [SerializeField]
-        [Tooltip("The folder to save all of the generated assets into.")]
-        Object _saveFolder;
+    [SerializeField]
+    [Tooltip("Columns in the spreadsheet to ignore")]
+    string[] _ignoreColumns;
 
-        [MenuItem("Hourai Teahouse/Localization/Generate")]
-        static void Create() {
-            var generator = LoadGenerator() ?? CreateGenerator();
+    [SerializeField]
+    [Tooltip("The String Table Collection to save the results to")]
+    string _stringTableCollection;
+
+    [MenuItem("Hourai Teahouse/Localization/Generate All")]
+    public static void GenerateAll() {
+        foreach (var generator in EditorAssetUtil.LoadAll<LocalizationGenerator>()) {
             Assert.IsNotNull(generator);
-            if (generator)
+            try {
                 generator.Generate();
-        }
-
-        static LocalizationGenerator LoadGenerator() {
-          var paths = from guid in AssetDatabase.FindAssets("t:LocalizationGenerator")
-                      select AssetDatabase.GUIDToAssetPath(guid);
-          return AssetDatabase.LoadAssetAtPath<LocalizationGenerator>(paths.FirstOrDefault());
-        }
-
-        static LocalizationGenerator CreateGenerator() {
-          var generaator = ScriptableObject.CreateInstance<LocalizationGenerator>();
-          ProjectWindowUtil.CreateAsset(generaator, "LocalizationGenerator.asset");
-          return generaator;
-        }
-
-        /// <summary> Reads the Google Spreadsheet and generates/updates the StringSet asset files </summary>
-        public void Generate() {
-            ListFeed test = GDocService.GetSpreadsheet(GoogleLink);
-            var languageMap = new Dictionary<string, Dictionary<string, string>>();
-            var ignore = new HashSet<string>(_ignoreColumns);
-            foreach (ListEntry row in test.Entries) {
-                var keyEntry =
-                    row.Elements.OfType<ListEntry.Custom>()
-                        .FirstOrDefault(e => e.LocalName.ToLower() == _defaultLanguage.ToLower());
-                if (keyEntry == null)
-                    continue;
-                var key = keyEntry.Value;
-                foreach (ListEntry.Custom element in row.Elements) {
-                    string lang = element.LocalName;
-                    if (ignore.Contains(lang))
-                        continue;
-                    if (!languageMap.ContainsKey(lang))
-                        languageMap[lang] = new Dictionary<string, string>();
-                    languageMap[lang].Add(key, element.Value);
-                }
+            } catch(Exception e) {
+                Debug.LogError($"Failed to generate localization assets from {generator.name}");
+                Debug.LogException(e);
             }
-            var baseFolder = Path.Combine(Application.streamingAssetsPath, "lang");
-            if (!Directory.Exists(baseFolder))
-                Directory.CreateDirectory(baseFolder);
-            foreach (var lang in languageMap) {
-                File.WriteAllText(Path.Combine(baseFolder, lang.Key + LanguageManager.FileExtension),
-                    JsonConvert.SerializeObject(lang.Value, Formatting.Indented));
-                Debug.LogFormat("Generating language files for: {0}", lang.Key);
-            }
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
         }
-
     }
+
+    static AssetTableCollection FindStringTableCollection(string name) {
+        var allCollections = LocalizationEditorSettings.GetAssetTablesCollection<StringTable>();
+        return allCollections.FirstOrDefault(col => col.TableName == name);
+    }
+
+    void ClearAllEntries(IEnumerable<StringTable> tables) {
+        var keys = new HashSet<uint>();
+        foreach (var table in tables) {
+            keys.Clear();
+            keys.UnionWith(table.TableEntries.Keys);
+            foreach (var key in keys) {
+                table.RemoveEntry(key);
+            }
+        }
+    }
+
+    /// <summary> 
+    /// Reads the Google Spreadsheet and generates/updates the StringSet asset files 
+    /// </summary>
+    public void Generate() {
+        var collections = FindStringTableCollection(_stringTableCollection);
+        Assert.IsNotNull(collections, $"No table for '{_stringTableCollection}' defined.");
+        var stringTables = collections.Tables.OfType<StringTable>()
+                                             .ToDictionary(t => t.LocaleIdentifier.Code.ToLower(), t => t);
+        
+        // Clear all entries from all tables
+        ClearAllEntries(stringTables.Values);
+
+        ListFeed test = GDocService.GetSpreadsheet(GoogleLink);
+        var ignore = new HashSet<string>(_ignoreColumns);
+        foreach (ListEntry row in test.Entries) {
+            var keyEntry =
+                row.Elements.OfType<ListEntry.Custom>()
+                    .FirstOrDefault(e => e.LocalName.ToLower() == _keyColumn.ToLower());
+            if (keyEntry == null) continue;
+            var smart = keyEntry.Value.ToLower().Contains(kSmartKey);
+            var key = keyEntry.Value.Replace(kSmartKey, "").Trim();
+            foreach (ListEntry.Custom element in row.Elements) {
+                string lang = element.LocalName.ToLower();
+                StringTable table;
+                if (ignore.Contains(lang) || !stringTables.TryGetValue(lang, out table)) continue;
+                table.Keys.AddKey(key);
+                table.AddEntry(key, element.Value);
+            }
+        }
+
+        // Mark all of the tables as dirty.
+        foreach (var table in stringTables.Values) {
+            EditorUtility.SetDirty(table);
+            Debug.Log($"[Localization] Updated string table {table.LocaleIdentifier.Code} for '{_stringTableCollection}'");
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+
+}
 
 }
