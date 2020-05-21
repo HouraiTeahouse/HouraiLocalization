@@ -50,17 +50,6 @@ public class LocalizationGenerator : ScriptableObject {
         return allCollections.FirstOrDefault(col => col.TableName == name);
     }
 
-    void ClearAllEntries(IEnumerable<StringTable> tables) {
-        var keys = new HashSet<uint>();
-        foreach (var table in tables) {
-            keys.Clear();
-            keys.UnionWith(table.TableEntries.Keys);
-            foreach (var key in keys) {
-                table.RemoveEntry(key);
-            }
-        }
-    }
-
     /// <summary> 
     /// Reads the Google Spreadsheet and generates/updates the StringSet asset files 
     /// </summary>
@@ -71,7 +60,10 @@ public class LocalizationGenerator : ScriptableObject {
                                              .ToDictionary(t => t.LocaleIdentifier.Code.ToLower(), t => t);
         
         // Clear all entries from all tables
-        ClearAllEntries(stringTables.Values);
+        collections.TableEntries.Clear();
+        foreach (var table in stringTables.Values) {
+            table.Clear();
+        }
 
         ListFeed test = GDocService.GetSpreadsheet(GoogleLink);
         var ignore = new HashSet<string>(_ignoreColumns);
@@ -86,7 +78,6 @@ public class LocalizationGenerator : ScriptableObject {
                 string lang = element.LocalName.ToLower();
                 StringTable table;
                 if (ignore.Contains(lang) || !stringTables.TryGetValue(lang, out table)) continue;
-                table.Keys.AddKey(key);
                 table.AddEntry(key, element.Value);
             }
         }

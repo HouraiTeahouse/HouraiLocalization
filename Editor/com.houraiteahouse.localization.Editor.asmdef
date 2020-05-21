@@ -4,7 +4,9 @@
         "com.houraiteahouse.localization.Runtime",
         "Unity.Localization",
         "Unity.Localization.Editor",
-        "com.houraiteahouse.core.Runtime"
+        "com.houraiteahouse.core.Runtime",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor"
     ],
     "includePlatforms": [
         "Editor"
